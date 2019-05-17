@@ -1,3 +1,4 @@
 adjustText
 matplotlib
+networkx
 numpy
