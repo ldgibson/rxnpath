@@ -6,12 +6,12 @@ from adjustText import adjust_text
 
 
 class ReactionDiagram(nx.DiGraph):
-    """Simple class for generating reaction diagrams."""
-    def __init__(self, **kwargs):
+    def __init__(self, colors=['black', 'blue', 'green',
+                               'red', 'purple', 'orange'], **kwargs):
         nx.DiGraph.__init__(self, **kwargs)
         self.subgraphs = {}
         self.step_length = None
-        self._colors = ['black', 'blue', 'green', 'red', 'purple', 'orange']
+        self.colors = colors.copy()
         return
 
     def add_pathway(self, energies, labels, name, color=None, positions=[]):
@@ -37,16 +37,15 @@ class ReactionDiagram(nx.DiGraph):
         else:
             positions = dict((label, i) for i, label in enumerate(labels))
 
-        self.add_path(labels)
-
         assert set(labels) == set(positions.keys()), \
             "Position keys and labels must match."
 
         if color:
             pass
         else:
-            color = self._colors.pop(0)
-
+            color = self.colors.pop(0)
+        self.add_nodes_from(labels, color=color)
+        self.add_path(labels, color=color)
         self.subgraphs[name] = dict(graph=self.subgraph(labels),
                                     color=color,
                                     labels=labels.copy(),
@@ -54,8 +53,8 @@ class ReactionDiagram(nx.DiGraph):
                                     positions=positions)
         return
 
-    def add_state(self, label, energy, position, edges,
-                  subgraph_name, color=None):
+    def add_state(self, label, energy, position,
+                  edges, subgraph_name, color=None):
         for (u, v) in edges:
             assert label in [u, v],\
                 "'{}' not included in the edge declaration.".format(label)
@@ -71,11 +70,10 @@ class ReactionDiagram(nx.DiGraph):
             else:
                 assert self.has_node(v), "'{}' does not exist".format(v)
 
-        self.add_node(label)
+        self.add_node(label, color=color)
         if subgraph_name in self.subgraphs.keys():
             new_subgraph = self.subgraphs[subgraph_name]['labels'] + [label]
-            self.subgraphs[subgraph_name]['graph'] = \
-                self.subgraph(new_subgraph)
+            self.subgraphs[subgraph_name]['graph'] = self.subgraph(new_subgraph)
             self.subgraphs[subgraph_name]['labels'].append(label)
             self.subgraphs[subgraph_name]['positions'][label] = position
             self.subgraphs[subgraph_name]['energies'] = \
@@ -89,7 +87,8 @@ class ReactionDiagram(nx.DiGraph):
         self.add_edges_from(edges)
         return
 
-    def prepare_diagram(self, step_width=3, between=1, linewidth=3):
+
+    def prepare_diagram(self, step_width=3, between=1):
         self.step_length = step_width / (step_width + between)
 
         for subG in self.subgraphs.keys():
@@ -109,13 +108,14 @@ class ReactionDiagram(nx.DiGraph):
                                          [line_coords[1, 0]]])
                 data['line'] = np.insert(line_coords, [1],
                                          label_coords, axis=1)
-#                 data['linewidth'] = linewidth
-                data['color'] = self.subgraphs[subG]['color']
+                # data['linewidth'] = linewidth
+                # data['color'] = self.subgraphs[subG]['color']
                 data['label_coords'] = label_coords
         return
 
     def plot_diagram(self, figsize=(10, 8), fontsize=12, ylabel="Energy",
-                     margins=(0.1, 0.1),
+                     xlabel="Reaction Progress", margins=(0.1, 0.1),
+                     fname=None, prefix=None, saveparams=dict(),
                      state_line_attr=dict(linewidth=3, linestyle='-'),
                      edge_line_attr=dict(linewidth=1, linestyle='--'),
                      show_energies=False,
@@ -129,7 +129,7 @@ class ReactionDiagram(nx.DiGraph):
             else:
                 label = n
             text.append(ax.text(*data['label_coords'], label,
-                        fontsize=fontsize))
+                                fontsize=fontsize))
 
         for n1, n2 in self.edges:
             color = self.node[n2]['color']
@@ -147,9 +147,15 @@ class ReactionDiagram(nx.DiGraph):
                             "or a list or tuple of two numbers.")
 
         if show_positions:
-            pos = [i + self.step_length / 2 for i in range(5)]
+            max_distance = 0
+            for n, data in self.nodes(data=True):
+                if max_distance < data['line'][0, -1] + 1:
+                    max_distance = int(data['line'][0, -1] + 1)
+                else:
+                    pass
+            pos = [i + self.step_length / 2 for i in range(max_distance)]
             ax.set_xticks(pos)
-            ax.set_xticklabels([str(i) for i in range(5)])
+            ax.set_xticklabels([str(i) for i in range(max_distance)])
             ax.tick_params(axis='x', labelsize=16)
         else:
             ax.tick_params(axis='x',
@@ -162,6 +168,21 @@ class ReactionDiagram(nx.DiGraph):
             ax.set_ylabel(ylabel, fontsize=20)
         else:
             pass
+
+        if xlabel:
+            ax.set_xlabel(xlabel, fontsize=20)
+        else:
+            pass
+
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        plt.tight_layout()
         adjust_text(text, autoalign='y',
                     only_move={'text': 'y', 'points': 'y'}, **adjust)
+        if fname:
+            if prefix:
+                fname = os.path.join(prefix, fname)
+            else:
+                pass
+            plt.savefig(fname, transparent=True, **saveparams)
         return
