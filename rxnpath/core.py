@@ -131,6 +131,9 @@ class ReactionDiagram(nx.DiGraph):
             else:
                 label = n
 
+            # Shift label position in y-direction by an offset if at
+            # position 0. This makes the autoalignment of text easier
+            # for adjustText.
             label_x, label_y = data['label_coords']
             if data['position'] == 0:
                 label_y += sign * counter
