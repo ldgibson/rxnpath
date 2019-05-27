@@ -174,7 +174,7 @@ class ReactionDiagram(nx.DiGraph):
     def plot_diagram(self, figsize=(10, 8), fontsize=12, ylabel="Energy",
                      xlabel="Reaction Progress", margins=(0.1, 0.1),
                      step_size=0.75, fname=None, prefix=None,
-                     saveparams=dict(),
+                     saveparams=dict(transparent=True),
                      state_line_attr=dict(linewidth=3, linestyle='-'),
                      edge_line_attr=dict(linewidth=1, linestyle='--'),
                      show_energies=False, show_positions=False,
@@ -205,6 +205,7 @@ class ReactionDiagram(nx.DiGraph):
             Prefix to be prepended to `fname`. Can be used to specify
             a path different from working directory.
         saveparams : dict, optional
+            Default sets `transparent=True`.
             kwargs of `matplotlib.pyplot.savefig()`
         state_line_attr : dict, optional
             Adjusts line style for states.
@@ -299,5 +300,5 @@ class ReactionDiagram(nx.DiGraph):
                 fname = os.path.join(prefix, fname)
             else:
                 pass
-            plt.savefig(fname, transparent=True, **saveparams)
+            plt.savefig(fname, **saveparams)
         return
