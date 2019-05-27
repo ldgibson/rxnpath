@@ -173,11 +173,11 @@ class ReactionDiagram(nx.DiGraph):
 
     def plot_diagram(self, figsize=(10, 8), fontsize=12, ylabel="Energy",
                      xlabel="Reaction Progress", margins=(0.1, 0.1),
-                     step_size=0.75, fname=None, prefix=None,
-                     saveparams=dict(transparent=True),
+                     step_size=0.75, show_energies=False,
+                     fname=None, prefix=None, show_positions=False,
                      state_line_attr=dict(linewidth=3, linestyle='-'),
                      edge_line_attr=dict(linewidth=1, linestyle='--'),
-                     show_energies=False, show_positions=False,
+                     saveparams=dict(transparent=True),
                      adjust=dict()):
         """
         Renders the reaction diagram.
@@ -198,25 +198,25 @@ class ReactionDiagram(nx.DiGraph):
             from the end of the previous state's x-position and will
             lead to all connecting edges being vertical lines for
             consecutive states.
+        show_energies : bool, optional
+            Displays energies in labels if `True`.
         fname : str, optional
             File name of diagram to be saved. Specifying a file name
             will cause the diagram to be saved.
         prefix : str, optional
             Prefix to be prepended to `fname`. Can be used to specify
             a path different from working directory.
-        saveparams : dict, optional
-            Default sets `transparent=True`.
-            kwargs of `matplotlib.pyplot.savefig()`
+        show_positions : bool, optional
+            Displays numerical position locations on x-axis if `True`.
         state_line_attr : dict, optional
             Adjusts line style for states.
             Kwargs of `matplotlib.axes.Axes.plot()`
         edge_line_attr : dict, optional
             Adjusts line style for edges.
             Kwargs of `matplotlib.axes.Axes.plot()`
-        show_energies : bool, optional
-            Displays energies in labels if `True`.
-        show_positions : bool, optional
-            Displays numerical position locations on x-axis if `True`.
+        saveparams : dict, optional
+            Default sets `transparent=True`.
+            kwargs of `matplotlib.pyplot.savefig()`
         adjust : dict, optional
             Kwargs of `adjustText.adjust_text()`
         """
