@@ -122,13 +122,24 @@ class ReactionDiagram(nx.DiGraph):
                      show_positions=False, adjust=dict()):
         fig, ax = plt.subplots(figsize=figsize)
         text = []
+        sign = 1.0
+        counter = 0
         for n, data in self.nodes(data=True):
             ax.plot(*data['line'], color=data['color'], **state_line_attr)
             if show_energies:
                 label = n + " ({:.2f})".format(data['label_coords'][1, 0])
             else:
                 label = n
-            text.append(ax.text(*data['label_coords'], label,
+
+            # Shift label position in y-direction by an offset if at
+            # position 0. This makes the autoalignment of text easier
+            # for adjustText.
+            label_x, label_y = data['label_coords']
+            if data['position'] == 0:
+                label_y += sign * counter
+                sign *= -1.0
+                counter += 0.1
+            text.append(ax.text(label_x, label_y, label,
                                 fontsize=fontsize))
 
         for n1, n2, data in self.edges(data=True):
