@@ -84,7 +84,7 @@ class ReactionDiagram(nx.DiGraph):
                                                  labels=[label],
                                                  energies=np.array([energy]),
                                                  positions={label: position})
-        self.add_edges_from(edges)
+        self.add_edges_from(edges, color=color)
         return
 
 
@@ -131,8 +131,11 @@ class ReactionDiagram(nx.DiGraph):
             text.append(ax.text(*data['label_coords'], label,
                                 fontsize=fontsize))
 
-        for n1, n2 in self.edges:
-            color = self.node[n2]['color']
+        for n1, n2, data in self.edges(data=True):
+            if data['color']:
+                color = data['color']
+            else:
+                color = self.node[n2]['color']
             begin = self.node[n1]['line'][:, -1].reshape(2, 1)
             end = self.node[n2]['line'][:, 0].reshape(2, 1)
             edge_line = np.append(begin, end, axis=1)
