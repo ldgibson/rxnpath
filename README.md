@@ -1,4 +1,7 @@
 # rxnpath
+
+[![PyPI version](https://badge.fury.io/py/rxnpath.svg)](https://badge.fury.io/py/rxnpath)
+
 Simple Python package that generates reaction diagrams
 
 ## Requires
