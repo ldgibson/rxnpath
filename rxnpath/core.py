@@ -11,19 +11,20 @@ class ReactionDiagram(nx.DiGraph):
     def __init__(self, colors=['black', 'blue', 'green',
                                'red', 'purple', 'orange'], **kwargs):
         nx.DiGraph.__init__(self, **kwargs)
-        self.subgraphs = {}
+        self.pathways = {}
         self._step_size = None
         self._colors = colors.copy()
         return
 
-    def add_pathway(self, labels, energies, pathname, color=None, positions=[]):
+    def add_pathway(self, labels, energies, pathname,
+                    color=None, positions=[]):
         """
         Adds a reaction pathway to reaction diagram.
 
-        Generates a subgraph labeled as `name`. Can be accessed with
-        self.subgraphs[`name`]. Necessary data are stored in each node/
-        edge of the graph, such as labels, energies, positions, and
-        color for each node in the subgraph.
+        Generates a pathway labeled as `name`. Can be accessed with
+        self.pathways[`name`]. Necessary data are stored in each node/
+        edge of the graph, such as energies, positions, and color for
+        each node in the pathway.
 
         Parameters
         ----------
@@ -86,7 +87,7 @@ class ReactionDiagram(nx.DiGraph):
 
         self.add_nodes_from(labels, color=color)
         self.add_path(labels, color=color)
-        self.subgraphs[name] = self.subgraph(labels)
+        self.pathways[pathname] = self.subgraph(labels)
 
         for i, label in enumerate(labels):
             self.node[label]['position'] = positions[label]
@@ -122,13 +123,15 @@ class ReactionDiagram(nx.DiGraph):
                     "'{}' not included in the edge declaration.".format(label)
                 if u == label:
                     # Check if label already exists in graph.
-                    assert not self.has_node(u), "'{}' already exists".format(u)
+                    assert not self.has_node(u),\
+                        "'{}' already exists".format(u)
                 else:
                     assert self.has_node(u), "'{}' does not exist".format(u)
 
                 if v == label:
                     # Check if label already exists in graph.
-                    assert not self.has_node(v), "'{}' already exists".format(v)
+                    assert not self.has_node(v),\
+                        "'{}' already exists".format(v)
                 else:
                     assert self.has_node(v), "'{}' does not exist".format(v)
         else:
@@ -141,19 +144,19 @@ class ReactionDiagram(nx.DiGraph):
         else:
             pass
 
-        if subgraph_name in self.subgraphs.keys():
+        if pathname in self.pathways.keys():
             # Build list of new subgraph.
-            new_sg = list(self.subgraphs[subgraph_name].nodes()).append(label)
+            new_sg = list(self.pathways[pathname].nodes()).append(label)
         else:
             new_sg = [label]
         # Assign subgraphs dictionary with updated subgraph.
-        self.subgraphs[subgraph_name] = self.subgraph(new_sg)
+        self.pathways[pathname] = self.subgraph(new_sg)
         return
 
     def prepare_diagram(self, step_size):
         self._step_size = step_size
-        for subgraph in self.subgraphs.keys():
-            for n, data in self.subgraphs[subgraph].nodes(data=True):
+        for pathway in self.pathways.keys():
+            for n, data in self.pathways[pathway].nodes(data=True):
                 pos = data['position']
                 line_coords = np.array([[pos, pos + self._step_size],
                                         [data['energy'], data['energy']]],
