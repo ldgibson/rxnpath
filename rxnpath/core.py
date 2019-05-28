@@ -147,7 +147,8 @@ class ReactionDiagram(nx.DiGraph):
 
         if pathname in self.pathways.keys():
             # Build list of new subgraph.
-            new_sg = list(self.pathways[pathname].nodes()).append(label)
+            new_sg = list(self.pathways[pathname].nodes())
+            new_sg.append(label)
         else:
             new_sg = [label]
         # Assign subgraphs dictionary with updated subgraph.
