@@ -3,11 +3,11 @@ Simple Python package that generates reaction diagrams
 
 ## Requires
 ```
-- adjustText
-- matplotlib
-- networkx
-- numpy
-- python>=3.6
+- adjustText==0.7.3
+- matplotlib==3.1.0
+- networkx==2.3
+- numpy==1.16.3
+- python==3.6
 ```
 
 ## Installation

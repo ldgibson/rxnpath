@@ -3,8 +3,8 @@ from os.path import join as pjoin
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 _version_major = 0
-_version_minor = 0
-_version_micro = 1  # use '' for first of series, number for 1 and above
+_version_minor = 1
+_version_micro = ''  # use '' for first of series, number for 1 and above
 _version_extra = 'dev2'
 # _version_extra = ''  # Uncomment this for full releases
 
@@ -42,7 +42,7 @@ for usage, and a DISCLAIMER OF ALL WARRANTIES.
 
 All trademarks referenced herein are property of their respective holders.
 
-Copyright (c) 2018--, Luke D Gibson, The University of Washington
+Copyright (c) 2019--, Luke D Gibson, The University of Washington
 Department of Chemical Engineering.
 """
 
@@ -62,4 +62,4 @@ MINOR = _version_minor
 MICRO = _version_micro
 VERSION = __version__
 PACKAGE_DATA = {'rxnpath': [pjoin('data', '*')]}
-REQUIRES = ['adjustText', 'matplotlib', 'networkx', 'numpy']
+REQUIRES = ['adjustText>=0.7.3', 'matplotlib>=3.1.0', 'networkx>=2.3', 'numpy>=1.16.3']
