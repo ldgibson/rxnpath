@@ -12,8 +12,8 @@ class ReactionDiagram(nx.DiGraph):
                                'red', 'purple', 'orange'], **kwargs):
         nx.DiGraph.__init__(self, **kwargs)
         self.subgraphs = {}
-        self.step_size = None
-        self.colors = colors.copy()
+        self._step_size = None
+        self._colors = colors.copy()
         return
 
     def add_pathway(self, energies, labels, name, color=None, positions=[]):
@@ -81,14 +81,15 @@ class ReactionDiagram(nx.DiGraph):
         if color:
             pass
         else:
-            color = self.colors.pop(0)
+            color = self._colors.pop(0)
+
         self.add_nodes_from(labels, color=color)
         self.add_path(labels, color=color)
-        self.subgraphs[name] = dict(graph=self.subgraph(labels),
-                                    color=color,
-                                    labels=labels.copy(),
-                                    energies=energies,
-                                    positions=positions)
+        self.subgraphs[name] = self.subgraph(labels)
+
+        for i, label in enumerate(labels):
+            self.node[label]['position'] = positions[label]
+            self.node[label]['energy'] = energies[i]
         return
 
     def add_state(self, label, energy, position,
@@ -128,46 +129,30 @@ class ReactionDiagram(nx.DiGraph):
             else:
                 assert self.has_node(v), "'{}' does not exist".format(v)
 
-        self.add_node(label, color=color)
-        if subgraph_name in self.subgraphs.keys():
-            new_subgraph = self.subgraphs[subgraph_name]['labels'] + [label]
-            self.subgraphs[subgraph_name]['graph'] = \
-                self.subgraph(new_subgraph)
-            self.subgraphs[subgraph_name]['labels'].append(label)
-            self.subgraphs[subgraph_name]['positions'][label] = position
-            self.subgraphs[subgraph_name]['energies'] = \
-                np.append(self.subgraphs[subgraph_name]['energies'], energy)
-        else:
-            self.subgraphs[subgraph_name] = dict(graph=self.subgraph(label),
-                                                 color=color,
-                                                 labels=[label],
-                                                 energies=np.array([energy]),
-                                                 positions={label: position})
+        self.add_node(label, color=color, energy=energy, position=position)
         self.add_edges_from(edges, color=color)
+
+        if subgraph_name in self.subgraphs.keys():
+            # Build list of new subgraph.
+            new_sg = list(self.subgraphs[subgraph_name].nodes()).append(label)
+            # Reassign subgraphs dictionary with updated subgraph.
+            self.subgraphs[subgraph_name] = self.subgraph(new_sg)
+        else:
+            self.subgraphs[subgraph_name] = self.subgraph(label)
         return
 
     def prepare_diagram(self, step_size):
-        self.step_size = step_size
-
-        for subG in self.subgraphs.keys():
-            for i, label in enumerate(self.subgraphs[subG]['labels']):
-                G = self.subgraphs[subG]['graph']
-                data = G.node[label]
-                data['energy'] = self.subgraphs[subG]['energies'][i]
-                if self.subgraphs[subG]['positions'].values:
-                    pos = self.subgraphs[subG]['positions'][label]
-                else:
-                    pos = i
-                data['position'] = pos
-                line_coords = np.array([[pos, pos + self.step_size],
+        self._step_size = step_size
+        for subgraph in self.subgraphs.keys():
+            for n, data in self.subgraphs[subgraph].nodes(data=True):
+                pos = data['position']
+                line_coords = np.array([[pos, pos + self._step_size],
                                         [data['energy'], data['energy']]],
                                        dtype=float)
                 label_coords = np.array([[np.sum(line_coords[0]) / 2],
                                          [line_coords[1, 0]]])
                 data['line'] = np.insert(line_coords, [1],
                                          label_coords, axis=1)
-                # data['linewidth'] = linewidth
-                # data['color'] = self.subgraphs[subG]['color']
                 data['label_coords'] = label_coords
         return
 
@@ -268,7 +253,7 @@ class ReactionDiagram(nx.DiGraph):
                     max_distance = int(data['line'][0, -1] + 1)
                 else:
                     pass
-            pos = [i + self.step_size / 2 for i in range(max_distance)]
+            pos = [i + self._step_size / 2 for i in range(max_distance)]
             ax.set_xticks(pos)
             ax.set_xticklabels([str(i) for i in range(max_distance)])
             ax.tick_params(axis='x', labelsize=16)
