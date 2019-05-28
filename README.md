@@ -34,8 +34,8 @@ labels2 = ['B-1', 'B-2', 'B-3', 'B-5']
 rxn = ReactionDiagram()
 
 # Add pathways
-rxn.add_pathway(energies1, labels1, name='A', color='black')
-rxn.add_pathway(energies2, labels2, name='B', color='blue',
+rxn.add_pathway(labels1, energies1, name='A', color='black')
+rxn.add_pathway(labels2, energies2, name='B', color='blue',
                 positions=[0, 1, 2, 4])
 
 # Add additional states not included in pathways
