@@ -12,9 +12,7 @@ Simple Python package that generates reaction diagrams
 
 ## Installation
 ```bash
-$ git clone https://github.com/ldgibson/rxnpath.git
-$ cd rxnpath/
-$ pip install .
+$ pip install rxnpath
 ```
 
 ## Example
