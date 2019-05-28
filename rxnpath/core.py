@@ -115,7 +115,8 @@ class ReactionDiagram(nx.DiGraph):
             'new_node' to both 'C' and 'E' in the order: C -> new_node -> E.
             If `None`, then no edges will be added.
         color : str, optional
-            Name of the color for the new state.
+            Color for the new state. Any edges connected to this state will
+            also have this color.
         """
         if edges:
             for (u, v) in edges:
