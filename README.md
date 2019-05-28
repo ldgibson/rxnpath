@@ -10,6 +10,13 @@ Simple Python package that generates reaction diagrams
 - python>=3.6
 ```
 
+## Installation
+```bash
+$ git clone https://github.com/ldgibson/rxnpath.git
+$ cd rxnpath/
+$ pip install .
+```
+
 ## Example
 
 ```python
