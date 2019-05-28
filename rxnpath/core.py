@@ -16,21 +16,22 @@ class ReactionDiagram(nx.DiGraph):
         self._colors = colors.copy()
         return
 
-    def add_pathway(self, energies, labels, name, color=None, positions=[]):
+    def add_pathway(self, labels, energies, pathname, color=None, positions=[]):
         """
         Adds a reaction pathway to reaction diagram.
 
         Generates a subgraph labeled as `name`. Can be accessed with
-        self.subgraphs[`name`]['graph']. Other attributes include the
-        labels, energies, positions, and color for each node in the
-        subgraph.
+        self.subgraphs[`name`]. Necessary data are stored in each node/
+        edge of the graph, such as labels, energies, positions, and
+        color for each node in the subgraph.
 
         Parameters
         ----------
-        energies : array-like
         labels : list
             Labels of each state that correspond to values in `energies`.
-        name : str
+        energies : array-like
+            Energies that correspond to respective labels.
+        pathname : str
             Name of the pathway.
         color : str, optional
             Color of the pathway. If `None`, then default colors are used.
@@ -42,14 +43,14 @@ class ReactionDiagram(nx.DiGraph):
         Examples
         --------
         >>> rxn = ReactionDiagram()
-        >>> rxn.add_pathway(energies=[0, 4, 1, 2],
-                            labels=['A', 'B', 'C', 'D'],
-                            name='path1',
+        >>> rxn.add_pathway(labels=['A', 'B', 'C', 'D'],
+                            energies=[0, 4, 1, 2],
+                            pathname='path1',
                             color='black',
                             positions=[0, 1, 2, 4])  # skips position 3
-        >>> rxn.add_pathway(energies=[0, 3, 1],
-                            labels=['E', 'F', 'G'],
-                            name='path2',
+        >>> rxn.add_pathway(labels=['E', 'F', 'G'],
+                            energies=[0, 3, 1],
+                            pathname='path2',
                             color='blue',
                             positions={'E': 0, 'F': 2, 'G': 4})  # skips 1 + 3
         """
@@ -92,8 +93,8 @@ class ReactionDiagram(nx.DiGraph):
             self.node[label]['energy'] = energies[i]
         return
 
-    def add_state(self, label, energy, position,
-                  edges, subgraph_name, color=None):
+    def add_state(self, label, energy, pathname, position,
+                  edges=None, color=None):
         """
         Adds a new state in the reaction diagram.
 
@@ -101,44 +102,52 @@ class ReactionDiagram(nx.DiGraph):
         ----------
         label : str
         energy : float
+        pathname : str
+            Name of the pathway to which the state belongs. Can be a
+            pathway that already exists, or a new pathway.
         position : int or float
-        edges : list of tuple of str
+        edges : list of tuple of str, optional
             List of tuples that have names of nodes to be connected.
             Edges are directed, so first node name is the source and
             the second node name is the target.
             E.g., edge=[('C', 'new_node'), ('new_node', 'E')] would connect
             'new_node' to both 'C' and 'E' in the order: C -> new_node -> E.
-        subgraph_name : str
-            Name of the subgraph to which the state belongs. Can be a
-            subgraph that already exists, or a new subgraph.
+            If `None`, then no edges will be added.
         color : str, optional
             Name of the color for the new state.
         """
-        for (u, v) in edges:
-            assert label in [u, v],\
-                "'{}' not included in the edge declaration.".format(label)
-            if u == label:
-                # Check if label already exists in graph.
-                assert not self.has_node(u), "'{}' already exists".format(u)
-            else:
-                assert self.has_node(u), "'{}' does not exist".format(u)
+        if edges:
+            for (u, v) in edges:
+                assert label in [u, v],\
+                    "'{}' not included in the edge declaration.".format(label)
+                if u == label:
+                    # Check if label already exists in graph.
+                    assert not self.has_node(u), "'{}' already exists".format(u)
+                else:
+                    assert self.has_node(u), "'{}' does not exist".format(u)
 
-            if v == label:
-                # Check if label already exists in graph.
-                assert not self.has_node(v), "'{}' already exists".format(v)
-            else:
-                assert self.has_node(v), "'{}' does not exist".format(v)
+                if v == label:
+                    # Check if label already exists in graph.
+                    assert not self.has_node(v), "'{}' already exists".format(v)
+                else:
+                    assert self.has_node(v), "'{}' does not exist".format(v)
+        else:
+            pass
 
         self.add_node(label, color=color, energy=energy, position=position)
-        self.add_edges_from(edges, color=color)
+
+        if edges:
+            self.add_edges_from(edges, color=color)
+        else:
+            pass
 
         if subgraph_name in self.subgraphs.keys():
             # Build list of new subgraph.
             new_sg = list(self.subgraphs[subgraph_name].nodes()).append(label)
-            # Reassign subgraphs dictionary with updated subgraph.
-            self.subgraphs[subgraph_name] = self.subgraph(new_sg)
         else:
-            self.subgraphs[subgraph_name] = self.subgraph(label)
+            new_sg = [label]
+        # Assign subgraphs dictionary with updated subgraph.
+        self.subgraphs[subgraph_name] = self.subgraph(new_sg)
         return
 
     def prepare_diagram(self, step_size):
