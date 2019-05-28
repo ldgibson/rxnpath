@@ -176,7 +176,8 @@ class ReactionDiagram(nx.DiGraph):
                      fname=None, prefix=None, show_positions=False,
                      state_line_attr=dict(linewidth=3, linestyle='-'),
                      edge_line_attr=dict(linewidth=1, linestyle='--'),
-                     saveparams=dict(transparent=True),
+                     ylabel_fontsize=20, xlabel_fontsize=20,
+                     ytick_labelsize=16, saveparams=dict(transparent=True),
                      adjust=dict()):
         """
         Renders the reaction diagram.
@@ -213,6 +214,10 @@ class ReactionDiagram(nx.DiGraph):
         edge_line_attr : dict, optional
             Adjusts line style for edges.
             Kwargs of `matplotlib.axes.Axes.plot()`
+        ylabel_fontsize, xlabel_fontsize : int, optional
+            Fontsize of label. Default is 20.
+        ytick_labelsize : int, optional
+            Fontsize of y-tick labels. Default is 16.
         saveparams : dict, optional
             Default sets `transparent=True`.
             kwargs of `matplotlib.pyplot.savefig()`
@@ -279,13 +284,13 @@ class ReactionDiagram(nx.DiGraph):
                            labelbottom=False)
 
         if ylabel:
-            ax.tick_params(axis='y', labelsize=16)
-            ax.set_ylabel(ylabel, fontsize=20)
+            ax.tick_params(axis='y', labelsize=ytick_labelsize)
+            ax.set_ylabel(ylabel, fontsize=ylabel_fontsize)
         else:
             pass
 
         if xlabel:
-            ax.set_xlabel(xlabel, fontsize=20)
+            ax.set_xlabel(xlabel, fontsize=xlabel_fontsize)
         else:
             pass
 
