@@ -35,9 +35,6 @@ rxn.add_pathway(energies2, labels2, name='B', color='blue',
 rxn.add_state(label='B-5*', energy=-3, position=4, edges=[('B-3', 'B-5*')],
               subgraph_name='B', color='green')
 
-# Generate points for plotting
-rxn.prepare_diagram()
-
 # Create diagram
 rxn.plot_diagram(figsize=(10, 5), ylabel="Energy (kcal/mol)",
                  fontsize=14, show_energies=True)
