@@ -248,8 +248,11 @@ class ReactionDiagram(nx.DiGraph):
                                 fontsize=fontsize))
 
         for n1, n2, data in self.edges(data=True):
-            if data['color']:
-                color = data['color']
+            if 'color' in data:
+                if data['color']:
+                    color = data['color']
+                else:
+                    color = self.node[n2]['color']
             else:
                 color = self.node[n2]['color']
             begin = self.node[n1]['line'][:, -1].reshape(2, 1)
