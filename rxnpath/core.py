@@ -229,6 +229,8 @@ class ReactionDiagram(nx.DiGraph):
         text = []
         sign = 1.0
         counter = 0
+
+        # Plot each state and their label.
         for n, data in self.nodes(data=True):
             ax.plot(*data['line'], color=data['color'], **state_line_attr)
             if show_energies:
@@ -247,6 +249,7 @@ class ReactionDiagram(nx.DiGraph):
             text.append(ax.text(label_x, label_y, label,
                                 fontsize=fontsize))
 
+        # Plot each edge.
         for n1, n2, data in self.edges(data=True):
             if 'color' in data:
                 if data['color']:

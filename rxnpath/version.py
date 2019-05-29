@@ -62,4 +62,5 @@ MINOR = _version_minor
 MICRO = _version_micro
 VERSION = __version__
 PACKAGE_DATA = {'rxnpath': [pjoin('data', '*')]}
-REQUIRES = ['adjustText>=0.7.3', 'matplotlib>=3.1.0', 'networkx>=2.3', 'numpy>=1.16.3']
+REQUIRES = ['adjustText>=0.7.3', 'matplotlib>=3.1.0',
+            'networkx>=2.3', 'numpy>=1.16.3']
