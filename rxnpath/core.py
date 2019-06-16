@@ -171,7 +171,7 @@ class ReactionDiagram(nx.DiGraph):
         return
 
     def plot_diagram(self, figsize=(10, 8), fontsize=12, ylabel="Energy",
-                     margins=(0.1, 0.1), step_size=0.75, show_energies=False,
+                     margins=(0.1, 0.1), step_size=0.75, show_energies=True,
                      fname=None, prefix=None, show_positions=False,
                      state_line_attr=dict(linewidth=3, linestyle='-'),
                      edge_line_attr=dict(linewidth=1, linestyle='--'),
