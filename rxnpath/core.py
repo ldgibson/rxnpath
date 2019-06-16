@@ -214,6 +214,11 @@ class ReactionDiagram(nx.DiGraph):
         edge_line_attr : dict, optional
             Adjusts line style for edges.
             Kwargs of `matplotlib.axes.Axes.plot()`
+        fontname : str, optional
+            Sets the font type globally for the figure.
+            Default is Times New Roman.
+        hide_xaxis : bool, optional
+            Turns off the the x-axis on diagram. Default is True.
         ylabel_fontsize, xlabel_fontsize : int, optional
             Fontsize of label. Default is 20.
         ytick_labelsize : int, optional
@@ -224,7 +229,12 @@ class ReactionDiagram(nx.DiGraph):
         adjust : dict, optional
             Kwargs of `adjustText.adjust_text()`
         """
-        plt.rcParams["font.family"] = fontname
+        if fontname:
+            plt.rcParams["font.family"] = fontname
+        else:
+            pass
+
+        # Constructs points and lines to be used for plotting.
         self.prepare_diagram(step_size)
         fig, ax = plt.subplots(figsize=figsize)
 
