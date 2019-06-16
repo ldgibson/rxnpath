@@ -171,14 +171,14 @@ class ReactionDiagram(nx.DiGraph):
         return
 
     def plot_diagram(self, figsize=(10, 8), fontsize=12, ylabel="Energy",
-                     xlabel="Reaction Progress", margins=(0.1, 0.1),
-                     step_size=0.75, show_energies=False,
+                     margins=(0.1, 0.1), step_size=0.75, show_energies=False,
                      fname=None, prefix=None, show_positions=False,
                      state_line_attr=dict(linewidth=3, linestyle='-'),
                      edge_line_attr=dict(linewidth=1, linestyle='--'),
-                     ylabel_fontsize=20, xlabel_fontsize=20,
-                     ytick_labelsize=16, saveparams=dict(transparent=True),
-                     adjust=dict()):
+                     fontname="Times New Roman", hide_xaxis=True,
+                     xlabel="Reaction Progress", ylabel_fontsize=20,
+                     xlabel_fontsize=20, ytick_labelsize=16,
+                     saveparams=dict(transparent=True), adjust=dict()):
         """
         Renders the reaction diagram.
 
@@ -224,8 +224,10 @@ class ReactionDiagram(nx.DiGraph):
         adjust : dict, optional
             Kwargs of `adjustText.adjust_text()`
         """
+        plt.rcParams["font.family"] = fontname
         self.prepare_diagram(step_size)
         fig, ax = plt.subplots(figsize=figsize)
+
         text = []
         sign = 1.0
         counter = 0
@@ -295,13 +297,19 @@ class ReactionDiagram(nx.DiGraph):
         else:
             pass
 
-        if xlabel:
+        if xlabel and not hide_xaxis:
             ax.set_xlabel(xlabel, fontsize=xlabel_fontsize)
         else:
             pass
 
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
+
+        if hide_xaxis:
+            ax.spines['bottom'].set_visible(False)
+        else:
+            pass
+
         plt.tight_layout()
         adjust_text(text, autoalign='y',
                     only_move={'text': 'y', 'points': 'y'}, **adjust)
