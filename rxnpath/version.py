@@ -42,7 +42,7 @@ for usage, and a DISCLAIMER OF ALL WARRANTIES.
 
 All trademarks referenced herein are property of their respective holders.
 
-Copyright (c) 2018--, Luke D Gibson, The University of Washington
+Copyright (c) 2019--, Luke D Gibson, The University of Washington
 Department of Chemical Engineering.
 """
 
@@ -62,4 +62,5 @@ MINOR = _version_minor
 MICRO = _version_micro
 VERSION = __version__
 PACKAGE_DATA = {'rxnpath': [pjoin('data', '*')]}
-REQUIRES = ['adjustText', 'matplotlib', 'networkx', 'numpy']
+REQUIRES = ['adjustText>=0.7.3', 'matplotlib>=3.1.0',
+            'networkx>=2.3', 'numpy>=1.16.3']

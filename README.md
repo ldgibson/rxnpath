@@ -1,20 +1,21 @@
 # rxnpath
+
+[![PyPI version](https://badge.fury.io/py/rxnpath.svg)](https://badge.fury.io/py/rxnpath)
+
 Simple Python package that generates reaction diagrams
 
 ## Requires
 ```
-- adjustText
-- matplotlib
-- networkx
-- numpy
-- python>=3.6
+- adjustText==0.7.3
+- matplotlib==3.1.0
+- networkx==2.3
+- numpy==1.16.3
+- python==3.6
 ```
 
 ## Installation
 ```bash
-$ git clone https://github.com/ldgibson/rxnpath.git
-$ cd rxnpath/
-$ pip install .
+$ pip install rxnpath
 ```
 
 ## Example
@@ -34,13 +35,13 @@ labels2 = ['B-1', 'B-2', 'B-3', 'B-5']
 rxn = ReactionDiagram()
 
 # Add pathways
-rxn.add_pathway(energies1, labels1, name='A', color='black')
-rxn.add_pathway(energies2, labels2, name='B', color='blue',
+rxn.add_pathway(labels1, energies1, pathname='A', color='black')
+rxn.add_pathway(labels2, energies2, pathname='B', color='blue',
                 positions=[0, 1, 2, 4])
 
 # Add additional states not included in pathways
 rxn.add_state(label='B-5*', energy=-3, position=4, edges=[('B-3', 'B-5*')],
-              subgraph_name='B', color='green')
+              pathname='B', color='green')
 
 # Create diagram
 rxn.plot_diagram(figsize=(10, 5), ylabel="Energy (kcal/mol)",

@@ -11,26 +11,28 @@ class ReactionDiagram(nx.DiGraph):
     def __init__(self, colors=['black', 'blue', 'green',
                                'red', 'purple', 'orange'], **kwargs):
         nx.DiGraph.__init__(self, **kwargs)
-        self.subgraphs = {}
-        self.step_size = None
-        self.colors = colors.copy()
+        self.pathways = {}
+        self._step_size = None
+        self._colors = colors.copy()
         return
 
-    def add_pathway(self, energies, labels, name, color=None, positions=[]):
+    def add_pathway(self, labels, energies, pathname,
+                    color=None, positions=[]):
         """
         Adds a reaction pathway to reaction diagram.
 
-        Generates a subgraph labeled as `name`. Can be accessed with
-        self.subgraphs[`name`]['graph']. Other attributes include the
-        labels, energies, positions, and color for each node in the
-        subgraph.
+        Generates a pathway labeled as `name`. Can be accessed with
+        self.pathways[`name`]. Necessary data are stored in each node/
+        edge of the graph, such as energies, positions, and color for
+        each node in the pathway.
 
         Parameters
         ----------
-        energies : array-like
         labels : list
             Labels of each state that correspond to values in `energies`.
-        name : str
+        energies : array-like
+            Energies that correspond to respective labels.
+        pathname : str
             Name of the pathway.
         color : str, optional
             Color of the pathway. If `None`, then default colors are used.
@@ -42,14 +44,14 @@ class ReactionDiagram(nx.DiGraph):
         Examples
         --------
         >>> rxn = ReactionDiagram()
-        >>> rxn.add_pathway(energies=[0, 4, 1, 2],
-                            labels=['A', 'B', 'C', 'D'],
-                            name='path1',
+        >>> rxn.add_pathway(labels=['A', 'B', 'C', 'D'],
+                            energies=[0, 4, 1, 2],
+                            pathname='path1',
                             color='black',
                             positions=[0, 1, 2, 4])  # skips position 3
-        >>> rxn.add_pathway(energies=[0, 3, 1],
-                            labels=['E', 'F', 'G'],
-                            name='path2',
+        >>> rxn.add_pathway(labels=['E', 'F', 'G'],
+                            energies=[0, 3, 1],
+                            pathname='path2',
                             color='blue',
                             positions={'E': 0, 'F': 2, 'G': 4})  # skips 1 + 3
         """
@@ -81,18 +83,19 @@ class ReactionDiagram(nx.DiGraph):
         if color:
             pass
         else:
-            color = self.colors.pop(0)
+            color = self._colors.pop(0)
+
         self.add_nodes_from(labels, color=color)
         self.add_path(labels, color=color)
-        self.subgraphs[name] = dict(graph=self.subgraph(labels),
-                                    color=color,
-                                    labels=labels.copy(),
-                                    energies=energies,
-                                    positions=positions)
+        self.pathways[pathname] = self.subgraph(labels)
+
+        for i, label in enumerate(labels):
+            self.node[label]['position'] = positions[label]
+            self.node[label]['energy'] = energies[i]
         return
 
-    def add_state(self, label, energy, position,
-                  edges, subgraph_name, color=None):
+    def add_state(self, label, energy, pathname, position,
+                  edges=None, color=None):
         """
         Adds a new state in the reaction diagram.
 
@@ -100,74 +103,70 @@ class ReactionDiagram(nx.DiGraph):
         ----------
         label : str
         energy : float
+        pathname : str
+            Name of the pathway to which the state belongs. Can be a
+            pathway that already exists, or a new pathway.
         position : int or float
-        edges : list of tuple of str
+        edges : list of tuple of str, optional
             List of tuples that have names of nodes to be connected.
             Edges are directed, so first node name is the source and
             the second node name is the target.
             E.g., edge=[('C', 'new_node'), ('new_node', 'E')] would connect
             'new_node' to both 'C' and 'E' in the order: C -> new_node -> E.
-        subgraph_name : str
-            Name of the subgraph to which the state belongs. Can be a
-            subgraph that already exists, or a new subgraph.
+            If `None`, then no edges will be added.
         color : str, optional
-            Name of the color for the new state.
+            Color for the new state. Any edges connected to this state will
+            also have this color.
         """
-        for (u, v) in edges:
-            assert label in [u, v],\
-                "'{}' not included in the edge declaration.".format(label)
-            if u == label:
-                # Check if label already exists in graph.
-                assert not self.has_node(u), "'{}' already exists".format(u)
-            else:
-                assert self.has_node(u), "'{}' does not exist".format(u)
+        if edges:
+            for (u, v) in edges:
+                assert label in [u, v],\
+                    "'{}' not included in the edge declaration.".format(label)
+                if u == label:
+                    # Check if label already exists in graph.
+                    assert not self.has_node(u),\
+                        "'{}' already exists".format(u)
+                else:
+                    assert self.has_node(u), "'{}' does not exist".format(u)
 
-            if v == label:
-                # Check if label already exists in graph.
-                assert not self.has_node(v), "'{}' already exists".format(v)
-            else:
-                assert self.has_node(v), "'{}' does not exist".format(v)
-
-        self.add_node(label, color=color)
-        if subgraph_name in self.subgraphs.keys():
-            new_subgraph = self.subgraphs[subgraph_name]['labels'] + [label]
-            self.subgraphs[subgraph_name]['graph'] = \
-                self.subgraph(new_subgraph)
-            self.subgraphs[subgraph_name]['labels'].append(label)
-            self.subgraphs[subgraph_name]['positions'][label] = position
-            self.subgraphs[subgraph_name]['energies'] = \
-                np.append(self.subgraphs[subgraph_name]['energies'], energy)
+                if v == label:
+                    # Check if label already exists in graph.
+                    assert not self.has_node(v),\
+                        "'{}' already exists".format(v)
+                else:
+                    assert self.has_node(v), "'{}' does not exist".format(v)
         else:
-            self.subgraphs[subgraph_name] = dict(graph=self.subgraph(label),
-                                                 color=color,
-                                                 labels=[label],
-                                                 energies=np.array([energy]),
-                                                 positions={label: position})
-        self.add_edges_from(edges, color=color)
+            pass
+
+        self.add_node(label, color=color, energy=energy, position=position)
+
+        if edges:
+            self.add_edges_from(edges, color=color)
+        else:
+            pass
+
+        if pathname in self.pathways.keys():
+            # Build list of new subgraph.
+            new_sg = list(self.pathways[pathname].nodes())
+            new_sg.append(label)
+        else:
+            new_sg = [label]
+        # Assign subgraphs dictionary with updated subgraph.
+        self.pathways[pathname] = self.subgraph(new_sg)
         return
 
     def prepare_diagram(self, step_size):
-        self.step_size = step_size
-
-        for subG in self.subgraphs.keys():
-            for i, label in enumerate(self.subgraphs[subG]['labels']):
-                G = self.subgraphs[subG]['graph']
-                data = G.node[label]
-                data['energy'] = self.subgraphs[subG]['energies'][i]
-                if self.subgraphs[subG]['positions'].values:
-                    pos = self.subgraphs[subG]['positions'][label]
-                else:
-                    pos = i
-                data['position'] = pos
-                line_coords = np.array([[pos, pos + self.step_size],
+        self._step_size = step_size
+        for pathway in self.pathways.keys():
+            for n, data in self.pathways[pathway].nodes(data=True):
+                pos = data['position']
+                line_coords = np.array([[pos, pos + self._step_size],
                                         [data['energy'], data['energy']]],
                                        dtype=float)
                 label_coords = np.array([[np.sum(line_coords[0]) / 2],
                                          [line_coords[1, 0]]])
                 data['line'] = np.insert(line_coords, [1],
                                          label_coords, axis=1)
-                # data['linewidth'] = linewidth
-                # data['color'] = self.subgraphs[subG]['color']
                 data['label_coords'] = label_coords
         return
 
@@ -177,7 +176,8 @@ class ReactionDiagram(nx.DiGraph):
                      fname=None, prefix=None, show_positions=False,
                      state_line_attr=dict(linewidth=3, linestyle='-'),
                      edge_line_attr=dict(linewidth=1, linestyle='--'),
-                     saveparams=dict(transparent=True),
+                     ylabel_fontsize=20, xlabel_fontsize=20,
+                     ytick_labelsize=16, saveparams=dict(transparent=True),
                      adjust=dict()):
         """
         Renders the reaction diagram.
@@ -214,6 +214,10 @@ class ReactionDiagram(nx.DiGraph):
         edge_line_attr : dict, optional
             Adjusts line style for edges.
             Kwargs of `matplotlib.axes.Axes.plot()`
+        ylabel_fontsize, xlabel_fontsize : int, optional
+            Fontsize of label. Default is 20.
+        ytick_labelsize : int, optional
+            Fontsize of y-tick labels. Default is 16.
         saveparams : dict, optional
             Default sets `transparent=True`.
             kwargs of `matplotlib.pyplot.savefig()`
@@ -225,6 +229,8 @@ class ReactionDiagram(nx.DiGraph):
         text = []
         sign = 1.0
         counter = 0
+
+        # Plot each state and their label.
         for n, data in self.nodes(data=True):
             ax.plot(*data['line'], color=data['color'], **state_line_attr)
             if show_energies:
@@ -243,9 +249,13 @@ class ReactionDiagram(nx.DiGraph):
             text.append(ax.text(label_x, label_y, label,
                                 fontsize=fontsize))
 
+        # Plot each edge.
         for n1, n2, data in self.edges(data=True):
-            if data['color']:
-                color = data['color']
+            if 'color' in data:
+                if data['color']:
+                    color = data['color']
+                else:
+                    color = self.node[n2]['color']
             else:
                 color = self.node[n2]['color']
             begin = self.node[n1]['line'][:, -1].reshape(2, 1)
@@ -268,7 +278,7 @@ class ReactionDiagram(nx.DiGraph):
                     max_distance = int(data['line'][0, -1] + 1)
                 else:
                     pass
-            pos = [i + self.step_size / 2 for i in range(max_distance)]
+            pos = [i + self._step_size / 2 for i in range(max_distance)]
             ax.set_xticks(pos)
             ax.set_xticklabels([str(i) for i in range(max_distance)])
             ax.tick_params(axis='x', labelsize=16)
@@ -280,13 +290,13 @@ class ReactionDiagram(nx.DiGraph):
                            labelbottom=False)
 
         if ylabel:
-            ax.tick_params(axis='y', labelsize=16)
-            ax.set_ylabel(ylabel, fontsize=20)
+            ax.tick_params(axis='y', labelsize=ytick_labelsize)
+            ax.set_ylabel(ylabel, fontsize=ylabel_fontsize)
         else:
             pass
 
         if xlabel:
-            ax.set_xlabel(xlabel, fontsize=20)
+            ax.set_xlabel(xlabel, fontsize=xlabel_fontsize)
         else:
             pass
 
