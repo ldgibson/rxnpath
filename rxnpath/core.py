@@ -16,7 +16,7 @@ class ReactionDiagram(nx.DiGraph):
         self._colors = colors.copy()
         return
 
-    def add_pathway(self, labels, energies, pathname,
+    def add_pathway(self, labels, energies, pathname, secondary_energies=[],
                     color=None, positions=[]):
         """
         Adds a reaction pathway to reaction diagram.
@@ -34,6 +34,10 @@ class ReactionDiagram(nx.DiGraph):
             Energies that correspond to respective labels.
         pathname : str
             Name of the pathway.
+        secondary_energies : array-like, optional
+            Secondary set of energies that correspond to each label. These
+            energies will be placed in parentheses. Default has no secondary
+            energies.
         color : str, optional
             Color of the pathway. If `None`, then default colors are used.
         positions : dict or list, optional
@@ -77,6 +81,14 @@ class ReactionDiagram(nx.DiGraph):
         else:
             positions = dict((label, i) for i, label in enumerate(labels))
 
+        if secondary_energies:
+            assert len(energies) == len(secondary_energies),\
+                "If secondary energies are given, it must have the same " +\
+                "length as `energies`. If a particular state does not " +\
+                "have a secondary energy, it can be denoted with `None`."
+        else:
+            pass
+
         assert set(labels) == set(positions.keys()), \
             "Position keys and labels must match."
 
@@ -92,10 +104,14 @@ class ReactionDiagram(nx.DiGraph):
         for i, label in enumerate(labels):
             self.node[label]['position'] = positions[label]
             self.node[label]['energy'] = energies[i]
+            if secondary_energies:
+                self.node[label]['secondary_energy'] = secondary_energies[i]
+            else:
+                self.node[label]['secondary_energy'] = None
         return
 
     def add_state(self, label, energy, pathname, position,
-                  edges=None, color=None):
+                  secondary_energy=None, edges=None, color=None):
         """
         Adds a new state in the reaction diagram.
 
@@ -107,6 +123,7 @@ class ReactionDiagram(nx.DiGraph):
             Name of the pathway to which the state belongs. Can be a
             pathway that already exists, or a new pathway.
         position : int or float
+        secondary_energy : float, optional
         edges : list of tuple of str, optional
             List of tuples that have names of nodes to be connected.
             Edges are directed, so first node name is the source and
@@ -138,7 +155,8 @@ class ReactionDiagram(nx.DiGraph):
         else:
             pass
 
-        self.add_node(label, color=color, energy=energy, position=position)
+        self.add_node(label, color=color, energy=energy,
+                      secondary_energy=secondary_energy, position=position)
 
         if edges:
             self.add_edges_from(edges, color=color)
@@ -178,6 +196,7 @@ class ReactionDiagram(nx.DiGraph):
                      fontname="Times New Roman", hide_xaxis=True,
                      xlabel="Reaction Progress", ylabel_fontsize=20,
                      xlabel_fontsize=20, ytick_labelsize=16,
+                     label_join_char=' ',
                      saveparams=dict(transparent=True), adjust=dict()):
         """
         Renders the reaction diagram.
@@ -223,6 +242,10 @@ class ReactionDiagram(nx.DiGraph):
             Fontsize of label. Default is 20.
         ytick_labelsize : int, optional
             Fontsize of y-tick labels. Default is 16.
+        label_join_char : str, optional
+            Sets how energies are joined with their label. Default is
+            space separated, but "\n" can be used to put each item on
+            a new line.
         saveparams : dict, optional
             Default sets `transparent=True`.
             kwargs of `matplotlib.pyplot.savefig()`
@@ -242,23 +265,63 @@ class ReactionDiagram(nx.DiGraph):
         sign = 1.0
         counter = 0
 
-        # Plot each state and their label.
+        # Plot each state first.
         for n, data in self.nodes(data=True):
             ax.plot(*data['line'], color=data['color'], **state_line_attr)
+
+        label_dict_params = {}
+
+        # Plot labels afterward to combine any labels at same energy level.
+        for n, data in self.nodes(data=True):
             if show_energies:
-                label = n + " ({:.2f})".format(data['label_coords'][1, 0])
+                label_elements = [n]
+                label_elements.append("{:.1f}".format(data['energy']))
+                if data['secondary_energy'] is not None:
+                    label_elements.append("({:.1f})".format(data['secondary_energy']))
+                else:
+                    pass
+                # label = label_join_char.join(label_elements)
+                # label = n + " {:.1f}".format(data['energy'])
+                # if data['secondary_energy']:
+                    # label += " ({:.1f})".format(data['secondary_energy'])
+                # else:
+                    # pass
             else:
-                label = n
+                label_elements = [n]
 
             # Shift label position in y-direction by an offset if at
             # position 0. This makes the autoalignment of text easier
             # for adjustText.
-            label_x, label_y = data['label_coords']
-            if data['position'] == 0:
-                label_y += sign * counter
-                sign *= -1.0
-                counter += 0.1
-            text.append(ax.text(label_x, label_y, label,
+            # label_x, label_y = data['label_coords']
+            label_x = data['label_coords'][0, 0]
+            label_y = data['label_coords'][1, 0]
+            # if data['position'] == 0:
+                # label_y += sign * counter
+                # sign *= -1.0
+                # counter += 0.1
+
+            # Check if a label already exists in this location. If so,
+            # combine the labels.
+            if (label_x, label_y) in label_dict_params:
+                label_dict_params[(label_x, label_y)][0] +=\
+                    ', {}'.format(label_elements[0])
+            else:
+                label_dict_params[(label_x, label_y)] = label_elements
+
+        # Plot the labels
+        for loc, label_elements in label_dict_params.items():
+            x, y = loc
+            # label = label_join_char.join(label_elements)
+            label = ''
+            for i, elem in enumerate(label_elements):
+                if i == 0:
+                    label += elem
+                elif i == 1:
+                    label += "\n" + elem
+                else:
+                    label += label_join_char + elem
+
+            text.append(ax.text(x, y, label,
                                 fontsize=fontsize))
 
         # Plot each edge.
