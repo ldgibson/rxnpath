@@ -7,6 +7,10 @@ import numpy as np
 from adjustText import adjust_text
 
 
+# TODO: Add option to adjust linestyle with each pathway,
+#       instead of just the color.
+
+
 class ReactionDiagram(nx.DiGraph):
     def __init__(self, colors=['black', 'blue', 'green',
                                'red', 'purple', 'orange'], **kwargs):
