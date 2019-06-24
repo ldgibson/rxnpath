@@ -368,6 +368,9 @@ class ReactionDiagram(nx.DiGraph):
                            top=False,
                            labelbottom=False)
 
+        # Set tick thickness
+        ax.tick_params(width=2, length=10, direction='inout')
+
         if ylabel:
             ax.tick_params(axis='y', labelsize=ytick_labelsize)
             ax.set_ylabel(ylabel, fontsize=ylabel_fontsize)
