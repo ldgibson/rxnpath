@@ -7,8 +7,7 @@ import numpy as np
 from adjustText import adjust_text
 
 
-# TODO: Add option to adjust linestyle with each pathway,
-#       instead of just the color.
+# TODO: Add option to adjust linestyle for each pathway.
 
 
 class ReactionDiagram(nx.DiGraph):
@@ -197,10 +196,10 @@ class ReactionDiagram(nx.DiGraph):
                      fname=None, prefix=None, show_positions=False,
                      state_line_attr=dict(linewidth=3, linestyle='-'),
                      edge_line_attr=dict(linewidth=1, linestyle='--'),
-                     fontname="Times New Roman", hide_xaxis=True,
-                     xlabel="Reaction Progress", ylabel_fontsize=20,
-                     xlabel_fontsize=20, ytick_labelsize=16,
-                     label_join_char=' ',
+                     fontname="Arial", hide_xaxis=True, title='',
+                     title_fontsize=22, xlabel="Reaction Progress",
+                     ylabel_fontsize=20, xlabel_fontsize=20,
+                     ytick_labelsize=16, label_join_char=' ',
                      saveparams=dict(transparent=True), adjust=dict()):
         """
         Renders the reaction diagram.
@@ -239,9 +238,13 @@ class ReactionDiagram(nx.DiGraph):
             Kwargs of `matplotlib.axes.Axes.plot()`
         fontname : str, optional
             Sets the font type globally for the figure.
-            Default is Times New Roman.
+            Default is Arial.
         hide_xaxis : bool, optional
             Turns off the the x-axis on diagram. Default is True.
+        title : str, optional
+            Sets title.
+        title_fontsize : int, optional
+            Fontsize of title. Default is 22.
         ylabel_fontsize, xlabel_fontsize : int, optional
             Fontsize of label. Default is 20.
         ytick_labelsize : int, optional
@@ -368,8 +371,9 @@ class ReactionDiagram(nx.DiGraph):
                            top=False,
                            labelbottom=False)
 
-        # Set tick thickness
+        # Set y-axis and yticks thicknesses
         ax.tick_params(width=2, length=10, direction='inout')
+        ax.spines['left'].set_linewidth(2)
 
         if ylabel:
             ax.tick_params(axis='y', labelsize=ytick_labelsize)
@@ -389,6 +393,8 @@ class ReactionDiagram(nx.DiGraph):
             ax.spines['bottom'].set_visible(False)
         else:
             pass
+
+        ax.set_title(title, fontsize=title_fontsize)
 
         plt.tight_layout()
         adjust_text(text, autoalign='y',
