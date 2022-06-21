@@ -1,4 +1,4 @@
 adjustText==0.7.3
 matplotlib==3.1.0
 networkx==2.3
-numpy==1.16.3
+numpy==1.22.0
